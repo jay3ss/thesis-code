@@ -239,3 +239,6 @@ TSWLatexianTemp*
 
 # ignore some lyx files
 \#*#
+
+# ignore virtual environment
+thesis-env/
