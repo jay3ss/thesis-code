@@ -79,11 +79,11 @@ S = sym('S%d', [6, 1]);
 [ts, S] = ode45(@(t, S)sdot(t, S, A, B, K, Q, R, r, tk), [tfinal, tinitial], Sfinal, options1);
 
 [tx, X] = ode45(@(t, X)xdot(t, X, K, S, R, A, B, tk, ts), [tinitial, tfinal], X0, options2);
-
-sim_time = tfinal*1000 + 1;
+dt = 1e-1;
+sim_time = tfinal*(dt^-1) + 1;
 tic
 for j = 1:1:sim_time
-    t_new=(j-1)/1000;
+    t_new=(j-1)*dt;
     K_new = interp1(tk, K, t_new);
     K_new = reshape(K_new, size(A));
     
@@ -94,9 +94,20 @@ for j = 1:1:sim_time
     X_new = X_new';
 
     u(:,j) = -(R^-1)*B'*K_new*X_new - (R^-1)*B'*S_new;
-    u(X_new(2,1) <= 0 & u(1,j) <= 0, j) = 0;
-    u(X_new(4,1) <= 0 & u(2,j) <= 0, j) = 0;
-    u(X_new(6,1) <= 0 & u(3,j) <= 0, j) = 0;
+   
+    % Make sure that we don't go backwards!
+    if u(1,j) <= 0 && X_new(2,1) <= 0
+        u(1,j) = 0;
+    end
+    if u(2,j) <= 0 && X_new(4,1) <= 0
+        u(2,j) = 0;
+    end
+    if u(3,j) <= 0 && X_new(6,1) <= 0
+        u(3,j) = 0;
+    end
+%     u(X_new(2,1) <= 0 & u(1,j) <= 0, j) = 0;
+%     u(X_new(4,1) <= 0 & u(1,j) <= 0, j) = 0;
+%     u(X_new(6,1) <= 0 & u(3,j) <= 0, j) = 0;
     tu(j)=t_new;
 end
 toc
@@ -111,36 +122,64 @@ toc
 % xlim([0, tfinal+1])
 % grid on
 
-figure
-plot(ts, S)
-xlabel('Time') % x-axis label
-ylabel('S(t)') % y-axis label
-legend('s_{1}(t)','s_{2}(t)', 's_{3}(t)','s_{4}(t)', 's_{5}(t)','s_{6}(t)')
-xlim([0, tfinal+1])
-grid on
-
-figure
-plot(tx, X(:, 1), tx, X(:, 3), tx, X(:, 5))
-xlabel('Time') % x-axis label
-ylabel('Headways h_{i}(t)') % y-axis label
+% figure
+% plot(ts, S)
+% xlabel('Time') % x-axis label
+% ylabel('S(t)') % y-axis label
+% legend('s_{1}(t)','s_{2}(t)', 's_{3}(t)','s_{4}(t)', 's_{5}(t)','s_{6}(t)')
+% xlim([0, tfinal+1])
+% grid on
+endtime = 250;
+figure('DefaultAxesFontSize',16)
+p1 = plot(tx, X(:, 1), tx, X(:, 3), tx, X(:, 5));
+p1(1).LineWidth = 2;
+p1(1).LineStyle = ':';
+p1(2).LineWidth = 2;
+p1(2).LineStyle = '--';
+p1(3).LineWidth = 2;
+p1(3).LineStyle = '-.';
+title('Headways')
+xlabel('Time (s)') % x-axis label
+ylabel('Headways h_{i}(t) (m)') % y-axis label
 legend('h_{1}^*(t)','h_{2}^*(t)','h_{3}^*(t)')
-xlim([0, tfinal+1])
+xlim([0, endtime])
+% xlim([0, tfinal+1])
+print -depsc -r300 opt_ctrl_headways.eps
 grid on
 
-figure
-plot(tx, X(:, 2), tx, X(:, 4), tx, X(:, 6))
-xlabel('Time') % x-axis label
-ylabel('Velocities v_{i}(t)') % y-axis label
-legend('v_{1}^*(t)','v_{2}^*(t)','v_{3}^*(t)')
-xlim([0, tfinal+1])
+figure('DefaultAxesFontSize',16)
+p2 = plot(tx, X(:, 2), tx, X(:, 4), tx, X(:, 6));
+p2(1).LineWidth = 2;
+p2(1).LineStyle = ':';
+p2(2).LineWidth = 2;
+p2(2).LineStyle = '--';
+p2(3).LineWidth = 2;
+p2(3).LineStyle = '-.';
+title('Velocities')
+xlabel('Time (s)') % x-axis label
+ylabel('Velocities v_{i}(t) (m/s)') % y-axis label
+legend('v_{1}^*(t)','v_{2}^*(t)','v_{3}^*(t)', 'Location', 'SouthEast')
+xlim([0, endtime])
+ylim([0, VMAX+1])
+% xlim([0, tfinal+1])
+print -depsc -r300 opt_ctrl_velocities.eps
 grid on
 
-figure
-plot(tu, u)
-xlabel('Time') % x-axis label
-ylabel('u^*(t)') % y-axis label
+figure('DefaultAxesFontSize',16)
+p3 = plot(tu, u(1,:), tu, u(2,:), tu, u(3,:));
+p3(1).LineWidth = 2;
+p3(1).LineStyle = ':';
+p3(2).LineWidth = 2;
+p3(2).LineStyle = '--';
+p3(3).LineWidth = 2;
+p3(3).LineStyle = '-.';
+title('Control trajectories')
+xlabel('Time (s)') % x-axis label
+ylabel('u^*(t) (m/s^2)') % y-axis label
 legend('u_{1}^*(t)', 'u_{2}^*(t)', 'u_{3}^*(t)')
-xlim([0, tfinal+1])
+xlim([0, endtime])
+% xlim([0, tfinal+1])
+print -depsc -r300 opt_ctrl_controls.eps
 grid on
 
 function dkdt = kdot(t, K, A, B, Q, R)
