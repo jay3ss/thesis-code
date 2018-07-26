@@ -7,7 +7,7 @@ close all;
 clc;
 
 dt = 0.1;                                            % time step
-N = 1500;                                            % number of time steps
+N = 2000;                                            % number of time steps
 n = 3;                                               % number of cars
 
 % IDM parameters
@@ -19,7 +19,7 @@ a = 0.2; % m/s^2                 acceleration in everyday traffic
 b = 4.0; % m/s^2                 comfortable braking in everyday traffic
 
 % Initial conditions
-Vi = 7.5; % m/s
+Vi = 0; % m/s
 
 % vf = 80;
 % rhom = 86;
@@ -31,12 +31,13 @@ L= 70; % m                             Radius of Ring
 d =  5; % m                             length of car
 edges = [50:.5:80];                                            % define bin edges for histogram
 
+
 % dx = [60, 23, 35];       % velocities
 dx = [Vi, Vi, Vi];       % velocities
 x = [0, 10, 55];    % positions
 s(1) = x(2) - x(1) - d; % headways
 s(2) = x(3) - x(2) - d;
-s(3) = L - x(3) - d;
+s(3) = 2*pi*L - x(3) - d;
 
 %x = [  1     2     3     4     5     6     7     8     9    10];
 
@@ -147,18 +148,28 @@ legend('First Car','Second Car','Third Car','Location','southeast')
 % %set(gca,'YLim',[5 55])
 % %legend('\rho_1','\rho_2','\rho_3','\rho_4','\rho_5','Location','southeast')
 % 
-figure
 
-for i = 1:1:n                                           % Plotting Speed
-    plot(t, V(:,i))
-    hold on
-end
+
+% for i = 1:1:n                                           % Plotting Speed
+%     plot(t, V(:,i))
+%     hold on
+% end
+figure('DefaultAxesFontSize',20)
+plot_headways = plot(t, V(:, 1), t, V(:, 2), t, V(:, 3));
+plot_headways(1).LineWidth = 4;
+plot_headways(1).LineStyle = ':';
+plot_headways(2).LineWidth = 4;
+plot_headways(2).LineStyle = '--';
+plot_headways(3).LineWidth = 4;
+plot_headways(3).LineStyle = '-.';
 %plot(t, x_1, t, x_2,t, x_3,t, x_4,t, x_5);
-xlabel('Time (s)','FontSize',16)
+xlabel('Time (s)')
 %set(gca,'XTick',[0,.25,.5])
-ylabel('Speed (m/s)','FontSize',16)
-title('Speed of Vehicles','FontSize',16)
-legend('First Car','Second Car','Third Car','Location','southeast')
+ylabel('Speed (m/s)')
+title('Speed of Vehicles')
+legend('First Car','Second Car','Third Car','Location','northeast')
+grid on
+% print -depsc -r300 idm-velocities-sim.eps
 %set(gca,'YTick',[0, 5, 10, 15, 20, 25])
 %set(gca,'YLim',[52 67])
 % legend('Tenth Car','Nineth Car','Eight Car','Seventh Car','Sixth Car','Fifth Car','Fourth Car','Third Car','Second Car','First Car','Location','southeast')
@@ -178,15 +189,25 @@ legend('First Car','Second Car','Third Car','Location','southeast')
 %legend('First Car','Second Car','Third Car','Fourth Car','Fifth Car','Sixth Car','Seventh Car','Eight Car','Nineth Car','Tenth Car','Location','southeast')
 
 % Plot headways
-figure
-for i = 1:1:n
-    plot(t, S(:, i))
-    hold on
-end
-title('Headway of vehicles','FontSize',16)
-xlabel('Time (s)', 'FontSize', 16)
-ylabel('Headway (m)', 'FontSize', 16)
-legend('First Car','Second Car','Third Car','Location','southeast')
+% figure
+% for i = 1:1:n
+%     plot(t, S(:, i))
+%     hold on
+% end
+figure('DefaultAxesFontSize',20)
+plot_headways = plot(t, S(:, 1), t, S(:, 2), t, S(:, 3));
+plot_headways(1).LineWidth = 4;
+plot_headways(1).LineStyle = ':';
+plot_headways(2).LineWidth = 4;
+plot_headways(2).LineStyle = '--';
+plot_headways(3).LineWidth = 4;
+plot_headways(3).LineStyle = '-.';
+title('Headway of vehicles')
+xlabel('Time (s)')
+ylabel('Headway (m)')
+legend('First Car','Second Car','Third Car','Location','northeast')
+grid on
+% print -depsc -r300 idm-headways-sim.eps
 
 % % First car
 % figure
